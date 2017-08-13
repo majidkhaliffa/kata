@@ -1,8 +1,11 @@
 package fr.majid.kata;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import fr.majid.kata.model.Account;
+import fr.majid.kata.model.Amount;
+import fr.majid.kata.repository.AccountRepository;
 
 /**
  * 
@@ -12,8 +15,12 @@ import fr.majid.kata.model.Account;
 @Service
 public class AccountService {
 
-	public Account  depose(long solde, String accountNumber) {
-		return new Account();
+	@Autowired
+	private AccountRepository accountRepository;
 
-	}	
+	public Account depose(Amount amount, String accountNumber) {
+		Account newAccount = accountRepository.findByNumero(accountNumber);
+		return newAccount;
+
+	}
 }

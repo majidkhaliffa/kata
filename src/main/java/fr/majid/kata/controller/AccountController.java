@@ -9,20 +9,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 import fr.majid.kata.AccountService;
 import fr.majid.kata.model.Account;
+import fr.majid.kata.model.Amount;
 
 @RestController
-@RequestMapping("/kata")
 public class AccountController {
 
 	@Autowired
-	private AccountService accountService;
+	private AccountService accountService;	
 
-	public AccountController(AccountService accountService) {
-		this.accountService = accountService;
-	}
-
-	@RequestMapping(method = RequestMethod.PUT, path = "/accounts/{accountNumero}")
-	public Account update(@PathVariable String accountNumero, @RequestBody long amount) {
-		return accountService.depose(amount, accountNumero);
+	@RequestMapping(method = RequestMethod.PUT, path = "/kata/accounts/{accountNumero}")
+	public Account  handleUpdate(@PathVariable String accountNumero,  @RequestBody Amount value) {
+		return accountService.depose(value, accountNumero);
 	}
 }

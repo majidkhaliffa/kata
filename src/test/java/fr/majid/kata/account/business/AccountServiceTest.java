@@ -11,6 +11,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import fr.majid.kata.AccountService;
 import fr.majid.kata.model.Account;
+import fr.majid.kata.model.Amount;
 import fr.majid.kata.model.Customer;
 
 /**
@@ -36,7 +37,7 @@ public class AccountServiceTest {
 				.with(Account::setCustomer,custom)
 				.with(Account::setSolde,530L).build();
 		
-		Account actualAcount = accountService.depose(530L, accountNumber);
+		Account actualAcount = accountService.depose(new Amount(530L), accountNumber);
 		
 		assertThat(actualAcount).isEqualToComparingFieldByField(expectedAccount);
 	}
