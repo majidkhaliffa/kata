@@ -2,6 +2,8 @@ package fr.majid.kata;
 
 import org.springframework.stereotype.Service;
 
+import fr.majid.kata.model.Account;
+
 /**
  * 
  * @author mortada majid
@@ -10,7 +12,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class AccountService {
 
-	public void depose(long solde, String accountNumber) {		
+	public Account  depose(long solde, String accountNumber) {
+		return new Account();
 
 	}	
 }

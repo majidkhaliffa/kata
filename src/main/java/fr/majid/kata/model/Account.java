@@ -14,32 +14,41 @@ import javax.validation.constraints.NotNull;
  */
 
 @Entity
-public class Account{
+public class Account {
 
 	@Id
-    @GeneratedValue
-    private  Long id;
+	@GeneratedValue
+	private Long id;
 
-    @NotNull    
-    private  String numero;
+	@NotNull
+	private String numero;
 
-    private  long solde;
+	private long solde;
 
 	@OneToOne(fetch = FetchType.LAZY)
-    private  Customer customer;
-    
-    public void setNumero(String numero) {
-    	this.numero = numero;
-    }
-    
-    public void setSolde(long solde) {
-    	this.solde = solde;
-    }
-    public long getSolde() {
-    	return solde;
-    }
-    
-    public void setCustomer(Customer customer) {
-    	this.customer = customer;
-    }
+	private Customer customer;
+
+	public void setNumero(String numero) {
+		this.numero = numero;
+	}
+
+	public void setSolde(long solde) {
+		this.solde = solde;
+	}
+
+	public long getSolde() {
+		return solde;
+	}
+
+	public void setCustomer(Customer customer) {
+		this.customer = customer;
+	}
+
+	public String getNumero() {
+		return numero;
+	}
+
+	public Customer getCustomer() {
+		return customer;
+	}
 }
