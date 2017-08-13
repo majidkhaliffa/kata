@@ -1,63 +1,124 @@
 package fr.majid.kata.controller;
 
+
 import static fr.majid.kata.builder.GenericBuilder.of;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.Arrays;
+
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.HttpMessageNotWritableException;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.mock.http.MockHttpOutputMessage;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.context.WebApplicationContext;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import fr.majid.kata.AccountService;
+import fr.majid.kata.KataApplication;
+import fr.majid.kata.builder.GenericBuilder;
 import fr.majid.kata.model.Account;
+import fr.majid.kata.model.Amount;
 import fr.majid.kata.model.Customer;
+import fr.majid.kata.repository.AccountRepository;
 
-
+/**
+ * 
+ * @author  mortada majid
+ *
+ */
 @RunWith(SpringRunner.class)
-@WebMvcTest(AccountController.class)
+@SpringBootTest(classes = KataApplication.class)
+@WebAppConfiguration
 public class AccountControllerTest {
 
-    @Autowired
+
+    private MediaType contentType = new MediaType(MediaType.APPLICATION_JSON.getType(),
+            MediaType.APPLICATION_JSON.getSubtype(),
+            Charset.forName("utf8"));
+
+    private String ACOUNT_ENDPOINT ="/kata/accounts/";
     private MockMvc mockMvc;
+    private HttpMessageConverter mappingJackson2HttpMessageConverter;
 
-    @MockBean
-    private AccountService accountService;
+    private Account account;
 
-    @Test
-    public void should_make_deposit_by_account_numero() throws Exception {
-		Customer customer = of(Customer::new)
+
+    @Autowired
+    private WebApplicationContext webApplicationContext;
+
+    @Autowired
+    private AccountRepository accountRepository;
+    
+    @Autowired
+    void setConverters(HttpMessageConverter<?>[] converters) {
+
+        this.mappingJackson2HttpMessageConverter = Arrays.asList(converters).stream()
+            .filter(hmc -> hmc instanceof MappingJackson2HttpMessageConverter)
+            .findAny()
+            .orElse(null);
+
+        assertNotNull("the JSON message converter must not be null",
+                this.mappingJackson2HttpMessageConverter);
+    }
+
+    @Before
+    public void setup() throws Exception {
+        this.mockMvc = webAppContextSetup(webApplicationContext).build();
+
+        Customer customer = of(Customer::new)
 				.with(Customer::setNom, "guest")
 				.with(Customer::setPrenom, "guest")
 				.build();
-        Account account = of(Account::new)
+         account = GenericBuilder.of(Account::new)
                 .with(Account::setNumero,"1000236")
-                .with(Account::setSolde,530L)
+                .with(Account::setSolde,50l)
                 .with(Account::setCustomer,customer)
                 .build();
-        doReturn(account).when(accountService).depose(530L, "1000236");
-        ObjectMapper mapper = new ObjectMapper();
 
-        mockMvc.perform(put("/kata/accounts/1000236")
-                .content(mapper.writeValueAsString(530L))
-                .contentType(MediaType.APPLICATION_JSON_VALUE))
+         
+
+    }
+
+    @Test
+    public void readSingleBookmark() throws Exception {    	
+    	int expectedSold = (int) (this.account.getSolde()+1000);
+    	
+        mockMvc.perform(put(ACOUNT_ENDPOINT+"1000236")
+        		.content(this.json(new Amount(1000L)))
+        		.contentType(contentType))
                 .andExpect(status().isOk())
-                .andExpect(content()
-                        .json(
-                                "{'customer': {'nom':guest,'prenom':guest}, 'solde': 530, 'numero': '1000236'}"
-                        )
-                );
+                .andExpect(content().contentType(contentType))
+                .andExpect(jsonPath("$.solde", is(expectedSold)))
+                .andExpect(jsonPath("$.numero", is(this.account.getNumero())))                
+                .andExpect(jsonPath("$.customer.nom", is(this.account.getCustomer().getNom())))
+                ;
+    }
 
-        verify(accountService, times(1)).depose(530L, "1000236");
+    protected String json(Object o)  {
+        MockHttpOutputMessage mockHttpOutputMessage = new MockHttpOutputMessage();
+        try {
+			this.mappingJackson2HttpMessageConverter.write(
+			        o, MediaType.APPLICATION_JSON, mockHttpOutputMessage);
+		} catch (HttpMessageNotWritableException | IOException ex) {
+		      System.out.println("Error: " + ex);
+		    
+			ex.printStackTrace();
+		}
+        return mockHttpOutputMessage.getBodyAsString();
     }
 }

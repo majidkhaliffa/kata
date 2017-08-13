@@ -47,7 +47,7 @@ public class AccountRepositoryTest {
         testEntityManager.persist(customer);
         testEntityManager.persist(expectedAccount);
     }
-
+    
     @Test
     public void should_fetch_account_by_numero() {
         Account resulting = accountRepository.findByNumero(customerNumber);
@@ -56,6 +56,27 @@ public class AccountRepositoryTest {
                 .isNotNull()
                 .isEqualToComparingFieldByField(expectedAccount);
     }
+
+    @Test
+    public void should_Save_account() {
+    	customerNumber = "33007AC5830";
+   	 customer = of(Customer::new)
+               .with(Customer::setNom, "guest")
+               .with(Customer::setPrenom, "guest")
+               .build();        
+       Account account = of(Account::new)
+                .with(Account::setNumero,customerNumber)
+                .with(Account::setSolde,530L)
+                .with(Account::setCustomer,customer)
+                .build();                
+       testEntityManager.persist(customer);
+       Account expectedSaveAccount = accountRepository.save(account);
+
+        assertThat(expectedSaveAccount)
+                .isNotNull()
+                .isEqualToComparingFieldByField(account);
+    }
+
     
     @Test
     public void should_fetch_account_by_Customer() {
