@@ -18,8 +18,10 @@ import fr.majid.kata.repository.AccountRepository;
 /**
  * 
  * @author mortada majid
+ * @email majid.mortada@gmail.com
  *
  */
+
 @Service
 public class AccountService {
 
@@ -43,5 +45,9 @@ public class AccountService {
 		Account account = Optional.of(accountRepository.findByNumero(accountNumber))
 				                            .orElseThrow(() -> new AccountNotFoundException("Account not found, please check your account numero"));
 		return account;
+	}
+
+	public Account withdraw(Amount amountWithdraw, Account account) {
+		return null;
 	}
 }

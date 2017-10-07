@@ -20,8 +20,9 @@ import fr.majid.kata.repository.AccountRepository;
 import fr.majid.kata.services.AccountService;
 
 /**
- * 
+ *
  * @author mortada majid
+ * @email majid.mortada@gmail.com
  *
  */
 
@@ -60,5 +61,20 @@ public class AccountServiceTest {
 		
 		assertThat(actualAcount).isEqualToComparingFieldByField(updatedAccount);
 	}
+
+	@Test
+	public void should_withdraw_from_account() throws Exception {
+		Customer custom = of(Customer::new)
+                .with(Customer::setId,1L).build();
+		Account account = of(Account::new)
+				.with(Account::setId,1L)
+	            .with(Account::setNumero,"3200666")
+	            .with(Account::setCustomer,custom)
+	            .with(Account::setSolde,1000L)
+	            .build();
+
+	        accountService.withdraw(new Amount(500L), account);
+
+	    }
 
 }

@@ -39,6 +39,13 @@ import fr.majid.kata.model.Amount;
 import fr.majid.kata.model.Customer;
 import fr.majid.kata.services.AccountService;
 
+/**
+ *
+ * @author mortada majid
+ * @email majid.mortada@gmail.com
+ *
+ */
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = KataApplication.class, 
                 webEnvironment = WebEnvironment.RANDOM_PORT,                

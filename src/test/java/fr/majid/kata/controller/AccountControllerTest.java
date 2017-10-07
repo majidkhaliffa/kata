@@ -40,15 +40,16 @@ import fr.majid.kata.model.Customer;
 import fr.majid.kata.services.AccountService;
 
 /**
- * 
- * @author  mortada majid
+ *
+ * @author mortada majid
+ * @email majid.mortada@gmail.com
  *
  */
+
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = KataApplication.class)
 @WebAppConfiguration
 public class AccountControllerTest {
-
 
     private MediaType contentType = new MediaType(MediaType.APPLICATION_JSON.getType(),
             MediaType.APPLICATION_JSON.getSubtype(),
@@ -92,8 +93,6 @@ public class AccountControllerTest {
                 .with(Account::setCustomer,customer)
                 .build();
 
-         
-
     }
 
     @Test
@@ -111,6 +110,7 @@ public class AccountControllerTest {
                 .andExpect(jsonPath("$.customer.nom", is(this.account.getCustomer().getNom())))
                 ;
     }
+
     @Test
     public void that_deposit_by_account_numero_should_Return_fail_with_404() throws Exception { 
     	doThrow(new AccountNotFoundException("acount not found")).when(accountService).depose(new Amount(1000L), "1000236");

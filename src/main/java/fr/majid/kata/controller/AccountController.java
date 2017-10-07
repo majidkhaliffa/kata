@@ -19,7 +19,12 @@ import fr.majid.kata.model.Account;
 import fr.majid.kata.model.Amount;
 import fr.majid.kata.services.AccountService;
 
-
+/**
+ * 
+ * @author mortada majid
+ * @email majid.mortada@gmail.com
+ *
+ */
 @RestController
 public class AccountController {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AccountController.class);
