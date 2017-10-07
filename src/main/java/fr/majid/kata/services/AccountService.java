@@ -48,6 +48,13 @@ public class AccountService {
 	}
 
 	public Account withdraw(Amount amountWithdraw, Account account) {
-		return null;
+		Account accountToUpdate = of(Account::new)
+                                .with(Account::setId, account.getId())
+		                        .with(Account::setNumero, account.getNumero())
+		                        .with(Account::setSolde,(account.getSolde() - amountWithdraw.getValue()))
+		                        .with(Account::setCustomer,account.getCustomer())
+		                        .build();
+
+				        return accountRepository.save(accountToUpdate);
 	}
 }

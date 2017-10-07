@@ -83,7 +83,7 @@ public class AccountServiceTest {
 	            .build();
 		doReturn(accountUpdate).when(accountRepository).save(accountUpdate);
 		
-		Account accountWithNewDeposit = accountService.withdraw(new Amount(100L), account);
+		Account accountWithNewDeposit = accountService.withdraw(new Amount(500L), account);
 		
 		verify(accountRepository, times(1)).save(Mockito.any(Account.class));
 		assertThat(accountWithNewDeposit).isEqualToComparingFieldByField(accountUpdate);
