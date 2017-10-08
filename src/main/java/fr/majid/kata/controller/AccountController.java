@@ -31,8 +31,8 @@ public class AccountController {
 	@Autowired
 	private AccountService accountService;	
 
-	@RequestMapping(method = RequestMethod.PUT, path = "/kata/accounts/{accountNumero}")
-	public Account  handleUpdate(@PathVariable String accountNumero,  @RequestBody Amount value) throws AccountNotFoundException {		
+	@RequestMapping(method = RequestMethod.PUT, path = "/kata/accounts/{accountNumero}/operations/{operationType}/")
+	public Account  handleUpdate(@PathVariable String accountNumero, @PathVariable String operationType,  @RequestBody Amount value) throws AccountNotFoundException {		
 			MDC.put("operation", "deposit");
 			MDC.put("accountNumero", accountNumero);
 			LOGGER.info("send reponse");

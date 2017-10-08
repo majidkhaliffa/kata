@@ -31,9 +31,9 @@ import org.springframework.mock.http.MockHttpOutputMessage;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.context.WebApplicationContext;
 
-import fr.majid.kata.AccountNotFoundException;
 import fr.majid.kata.KataApplication;
 import fr.majid.kata.builder.GenericBuilder;
+import fr.majid.kata.exception.AccountNotFoundException;
 import fr.majid.kata.model.Account;
 import fr.majid.kata.model.Amount;
 import fr.majid.kata.model.Customer;
@@ -110,7 +110,7 @@ public class AccountControllerIT {
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);        
         HttpEntity<String> entity = new HttpEntity<String>(this.json(new Amount(1000L)),httpHeaders);
 
-        ResponseEntity<Account> response = restTemplate.exchange(BASE_URL + httpPort + "/kata-it"+ACOUNT_ENDPOINT+"/1000236",HttpMethod.PUT, entity,
+        ResponseEntity<Account> response = restTemplate.exchange(BASE_URL + httpPort + "/kata-it"+ACOUNT_ENDPOINT+"/1000236/operations/deposit/",HttpMethod.PUT, entity,
         		Account.class);
 
         assertThat(response).isNotNull();
@@ -125,7 +125,7 @@ public class AccountControllerIT {
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);        
         HttpEntity<String> entity = new HttpEntity<String>(this.json(new Amount(1000L)),httpHeaders);
 
-        ResponseEntity<Account> response = restTemplate.exchange(BASE_URL + httpPort + "/kata-it" + ACOUNT_ENDPOINT + "/1000236",
+        ResponseEntity<Account> response = restTemplate.exchange(BASE_URL + httpPort + "/kata-it" + ACOUNT_ENDPOINT + "/1000236/operations/deposit/",
 						HttpMethod.PUT, entity, Account.class);
 
 						assertThat(response).isNotNull();

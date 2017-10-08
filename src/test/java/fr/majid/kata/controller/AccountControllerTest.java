@@ -31,9 +31,9 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 
-import fr.majid.kata.AccountNotFoundException;
 import fr.majid.kata.KataApplication;
 import fr.majid.kata.builder.GenericBuilder;
+import fr.majid.kata.exception.AccountNotFoundException;
 import fr.majid.kata.model.Account;
 import fr.majid.kata.model.Amount;
 import fr.majid.kata.model.Customer;
@@ -100,7 +100,7 @@ public class AccountControllerTest {
     	doReturn(account).when(accountService).depose(Mockito.anyObject(), Mockito.any()); 
     	int expectedSold = (int) (this.account.getSolde());
     	
-        mockMvc.perform(put(ACOUNT_ENDPOINT+"/1000236")
+        mockMvc.perform(put(ACOUNT_ENDPOINT+"/1000236/operations/deposit/")
         		.content(this.json(new Amount(1000L)))
         		.contentType(contentType))
                 .andExpect(status().isOk())
@@ -115,7 +115,7 @@ public class AccountControllerTest {
     public void that_deposit_by_account_numero_should_Return_fail_with_404() throws Exception { 
     	doThrow(new AccountNotFoundException("acount not found")).when(accountService).depose(new Amount(1000L), "1000236");
     	
-        mockMvc.perform(put(ACOUNT_ENDPOINT+"/1000236")
+        mockMvc.perform(put(ACOUNT_ENDPOINT+"/1000236/operations/deposit/")
         		.content(this.json(new Amount(1000L)))
         		.contentType(contentType))
                 .andExpect(status().isNotFound());
