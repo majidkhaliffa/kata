@@ -1,4 +1,4 @@
-package fr.majid.kata;
+package fr.majid.kata.exception;
 
 /**
  * 

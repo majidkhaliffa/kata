@@ -4,13 +4,13 @@ import static fr.majid.kata.builder.GenericBuilder.of;
 
 import java.util.Optional;
 
-
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import fr.majid.kata.AccountNotFoundException;
+import fr.majid.kata.exception.AccountNotFoundException;
+import fr.majid.kata.exception.SoldeInsuffisantException;
 import fr.majid.kata.model.Account;
 import fr.majid.kata.model.Amount;
 import fr.majid.kata.repository.AccountRepository;
@@ -48,6 +48,9 @@ public class AccountService {
 	}
 
 	public Account withdraw(Amount amountWithdraw, Account account) {
+		if(amountWithdraw.getValue() > account.getSolde()) {
+			            throw new SoldeInsuffisantException("Solde Insuffisant,operation canceled");
+			        }
 		Account accountToUpdate = of(Account::new)
                                 .with(Account::setId, account.getId())
 		                        .with(Account::setNumero, account.getNumero())
@@ -55,6 +58,6 @@ public class AccountService {
 		                        .with(Account::setCustomer,account.getCustomer())
 		                        .build();
 
-				        return accountRepository.save(accountToUpdate);
+		return accountRepository.save(accountToUpdate);
 	}
 }
