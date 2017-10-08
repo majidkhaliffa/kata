@@ -6,6 +6,8 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -34,11 +36,11 @@ import org.springframework.web.context.WebApplicationContext;
 import fr.majid.kata.KataApplication;
 import fr.majid.kata.builder.GenericBuilder;
 import fr.majid.kata.exception.AccountNotFoundException;
+import fr.majid.kata.exception.SoldeInsuffisantException;
 import fr.majid.kata.model.Account;
 import fr.majid.kata.model.Amount;
 import fr.majid.kata.model.Customer;
 import fr.majid.kata.services.AccountService;
-
 /**
  *
  * @author mortada majid
@@ -100,7 +102,7 @@ public class AccountControllerTest {
     	doReturn(account).when(accountService).depose(Mockito.anyObject(), Mockito.any()); 
     	int expectedSold = (int) (this.account.getSolde());
     	
-        mockMvc.perform(put(ACOUNT_ENDPOINT+"/1000236/operations/deposit/")
+        mockMvc.perform(put(ACOUNT_ENDPOINT+"/1000236/operations/DEPOSIT/")
         		.content(this.json(new Amount(1000L)))
         		.contentType(contentType))
                 .andExpect(status().isOk())
@@ -112,10 +114,11 @@ public class AccountControllerTest {
     }
 
     @Test
-    public void that_deposit_by_account_numero_should_Return_fail_with_404() throws Exception { 
-    	doThrow(new AccountNotFoundException("acount not found")).when(accountService).depose(new Amount(1000L), "1000236");
+    public void that_deposit_by_account_numero_should_Return_fail_with_404() throws Exception {
+    	doReturn(account).when(accountService).findAccountByNumero("1000236");
+    	doThrow(new AccountNotFoundException("acount not found")).when(accountService).depose(new Amount(1000L), account);
     	
-        mockMvc.perform(put(ACOUNT_ENDPOINT+"/1000236/operations/deposit/")
+        mockMvc.perform(put(ACOUNT_ENDPOINT+"/1000236/operations/DEPOSIT/")
         		.content(this.json(new Amount(1000L)))
         		.contentType(contentType))
                 .andExpect(status().isNotFound());
@@ -123,7 +126,65 @@ public class AccountControllerTest {
 
 	@Test
 	public void should_make_withdraw_by_account_numero() throws Exception {
+		
 
+        Customer customer = of(Customer::new)
+        		.with(Customer::setId,1L)
+				.build();
+         account = GenericBuilder.of(Account::new)
+        		 .with(Account::setId,1L)
+                .with(Account::setNumero,"1000236")
+                .with(Account::setSolde,1000L)
+                .with(Account::setCustomer,customer)
+                .build();
+         Account accountupdate = GenericBuilder.of(Account::new)
+        		 .with(Account::setId,1L)
+                .with(Account::setNumero,"1000236")
+                .with(Account::setSolde,950L)
+                .with(Account::setCustomer,customer)
+                .build();
+		
+				        Amount amount = new Amount(50L);
+				        doReturn(account).when(accountService).findAccountByNumero("1000236");
+				        doReturn(accountupdate).when(accountService).withdraw(amount, account);
+				
+				        mockMvc.perform(put(ACOUNT_ENDPOINT+"/1000236/operations/WITHDRAWL/")
+				                .content(this.json(amount))
+				               	.contentType(contentType))            
+				                
+				                .andExpect(status().isOk())
+				                
+				                .andExpect(content().contentType(contentType))
+				                .andExpect(jsonPath("$.solde", is(950)))
+				                .andExpect(jsonPath("$.numero", is(this.account.getNumero())))                
+				                .andExpect(jsonPath("$.customer.id", is(1)));
+				                
+				 
+				        verify(accountService, times(1)).withdraw(amount, account);
+	}
+	
+	@Test
+	public void that_withdraw_by_account_numero_should_Return_fail_with_404() throws Exception {
+
+        Customer customer = of(Customer::new)
+        		.with(Customer::setId,1L)
+				.build();
+         account = GenericBuilder.of(Account::new)
+        		 .with(Account::setId,1L)
+                .with(Account::setNumero,"1000236")
+                .with(Account::setSolde,50L)
+                .with(Account::setCustomer,customer)
+                .build();
+		
+				        Amount amount = new Amount(1000L);
+				        doReturn(account).when(accountService).findAccountByNumero("1000236");
+				        org.mockito.Mockito.doThrow(SoldeInsuffisantException.class).when(accountService).withdraw(amount, account);
+				
+				        mockMvc.perform(put(ACOUNT_ENDPOINT+"/1000236/operations/WITHDRAWL/")
+				                .content(this.json(amount))
+				               	.contentType(contentType))
+				                .andExpect(status().isPreconditionFailed())
+				                ;
 	}
 
     protected String json(Object o) throws Exception {

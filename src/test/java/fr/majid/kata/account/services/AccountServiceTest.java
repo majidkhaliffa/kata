@@ -61,7 +61,7 @@ public class AccountServiceTest {
 		doReturn(account).when(accountRepository).findByNumero(accountNumber);
         doReturn(updatedAccount).when(accountRepository).save(updatedAccount);
         
-		Account actualAcount = accountService.depose(new Amount(100L), accountNumber);
+		Account actualAcount = accountService.depose(new Amount(100L), account);
 		
 		assertThat(actualAcount).isEqualToComparingFieldByField(updatedAccount);
 	}

@@ -15,8 +15,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import fr.majid.kata.exception.AccountNotFoundException;
+import fr.majid.kata.exception.SoldeInsuffisantException;
 import fr.majid.kata.model.Account;
 import fr.majid.kata.model.Amount;
+import fr.majid.kata.model.OperationType;
 import fr.majid.kata.services.AccountService;
 
 /**
@@ -32,17 +34,35 @@ public class AccountController {
 	private AccountService accountService;	
 
 	@RequestMapping(method = RequestMethod.PUT, path = "/kata/accounts/{accountNumero}/operations/{operationType}/")
-	public Account  handleUpdate(@PathVariable String accountNumero, @PathVariable String operationType,  @RequestBody Amount value) throws AccountNotFoundException {		
-			MDC.put("operation", "deposit");
-			MDC.put("accountNumero", accountNumero);
-			LOGGER.info("send reponse");
-			return accountService.depose(value, accountNumero);		
+	public Account handleUpdate(@PathVariable String accountNumero, @PathVariable OperationType operationType,
+			@RequestBody Amount amount) throws AccountNotFoundException, SoldeInsuffisantException {
+		MDC.put("operation", operationType.name());
+		MDC.put("accountNumero", accountNumero);
+		Account account = accountService.findAccountByNumero(accountNumero);
+
+		switch (operationType) {
+		case DEPOSIT:
+			LOGGER.info("send reponse for deposit operation");
+			MDC.clear();
+			return accountService.depose(amount, account);
+		case WITHDRAWL:
+			LOGGER.info("send reponse for withdrawl operation");
+			MDC.clear();
+			return accountService.withdraw(amount, account);
+		}
+		MDC.clear();
+		throw new IllegalArgumentException("operation given does not correspond to any type");
 	}
 	
 	@ExceptionHandler({ AccountNotFoundException.class })
 	@ResponseStatus(code = HttpStatus.NOT_FOUND)	
 	public void  handleAccountNotFound(Exception e) {
 		LOGGER.warn("Account not found, please check your account numero");
-        
+	}
+
+	@ExceptionHandler({ SoldeInsuffisantException.class })
+	@ResponseStatus(code = HttpStatus.PRECONDITION_FAILED)
+	public void  handleSoldeInsuffisantException(Exception e) {
+		LOGGER.warn("Solde Insuffisant,operation canceled");
 	}
 }

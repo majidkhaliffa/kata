@@ -29,10 +29,9 @@ public class AccountService {
 	private AccountRepository accountRepository;
 
 	@Transactional
-	public Account depose(Amount amount, String accountNumber) throws AccountNotFoundException {
-		Account account = findAccountByNumero(accountNumber);
-		Account a = of(Account::new)
-		 .with(Account::setId, account.getId())
+	public Account depose(Amount amount, Account account) throws AccountNotFoundException {
+		   Account a = of(Account::new)
+		    .with(Account::setId, account.getId())
            .with(Account::setNumero, account.getNumero())
            .with(Account::setSolde,(account.getSolde() + amount.getValue()))
            .with(Account::setCustomer,account.getCustomer())
@@ -41,13 +40,13 @@ public class AccountService {
 		return updateAccount;
 	}
 	
-	private Account findAccountByNumero(String accountNumber) throws AccountNotFoundException {
+	 public Account findAccountByNumero(String accountNumber) throws AccountNotFoundException {
 		Account account = Optional.of(accountRepository.findByNumero(accountNumber))
 				                            .orElseThrow(() -> new AccountNotFoundException("Account not found, please check your account numero"));
 		return account;
 	}
 
-	public Account withdraw(Amount amountWithdraw, Account account) {
+	public Account withdraw(Amount amountWithdraw, Account account) throws SoldeInsuffisantException {
 		if(amountWithdraw.getValue() > account.getSolde()) {
 			            throw new SoldeInsuffisantException("Solde Insuffisant,operation canceled");
 			        }

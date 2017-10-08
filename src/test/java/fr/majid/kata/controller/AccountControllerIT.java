@@ -2,9 +2,16 @@ package fr.majid.kata.controller;
 
 import static fr.majid.kata.builder.GenericBuilder.of;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Arrays;
 
@@ -34,6 +41,7 @@ import org.springframework.web.context.WebApplicationContext;
 import fr.majid.kata.KataApplication;
 import fr.majid.kata.builder.GenericBuilder;
 import fr.majid.kata.exception.AccountNotFoundException;
+import fr.majid.kata.exception.SoldeInsuffisantException;
 import fr.majid.kata.model.Account;
 import fr.majid.kata.model.Amount;
 import fr.majid.kata.model.Customer;
@@ -104,13 +112,14 @@ public class AccountControllerIT {
 	}
     
     @Test
-    public void that_deposit_by_account_numero_should_Return_Success() throws Exception {    	
-    	doReturn(accountupdated).when(accountService).depose(new Amount(1000L), "1000236"); 
+    public void that_deposit_by_account_numero_should_Return_Success() throws Exception { 
+    	doReturn(account).when(accountService).findAccountByNumero("1000236");
+    	doReturn(accountupdated).when(accountService).depose(new Amount(1000L), account); 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);        
         HttpEntity<String> entity = new HttpEntity<String>(this.json(new Amount(1000L)),httpHeaders);
 
-        ResponseEntity<Account> response = restTemplate.exchange(BASE_URL + httpPort + "/kata-it"+ACOUNT_ENDPOINT+"/1000236/operations/deposit/",HttpMethod.PUT, entity,
+        ResponseEntity<Account> response = restTemplate.exchange(BASE_URL + httpPort + "/kata-it"+ACOUNT_ENDPOINT+"/1000236/operations/DEPOSIT/",HttpMethod.PUT, entity,
         		Account.class);
 
         assertThat(response).isNotNull();
@@ -125,17 +134,77 @@ public class AccountControllerIT {
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);        
         HttpEntity<String> entity = new HttpEntity<String>(this.json(new Amount(1000L)),httpHeaders);
 
-        ResponseEntity<Account> response = restTemplate.exchange(BASE_URL + httpPort + "/kata-it" + ACOUNT_ENDPOINT + "/1000236/operations/deposit/",
+        ResponseEntity<Account> response = restTemplate.exchange(BASE_URL + httpPort + "/kata-it" + ACOUNT_ENDPOINT + "/1000236/operations/DEPOSIT/",
 						HttpMethod.PUT, entity, Account.class);
 
 						assertThat(response).isNotNull();
 				        assertThat(response.getStatusCode()).as("Status code").isEqualTo(HttpStatus.NOT_FOUND);          
     }
 
-    @Test
+
+	@Test
 	public void should_make_withdraw_by_account_numero() throws Exception {
 
+        Customer customer = of(Customer::new)
+        		.with(Customer::setId,1L)
+        		.build();
+         account = GenericBuilder.of(Account::new)
+        		.with(Account::setId,1L)
+                .with(Account::setNumero,"1000236")
+                .with(Account::setSolde,1000L)
+                .with(Account::setCustomer,customer)
+                .build();
+         Account accountupdate = GenericBuilder.of(Account::new)
+        		.with(Account::setId,1L)
+                .with(Account::setNumero,"1000236")
+                .with(Account::setSolde,950L)
+                .with(Account::setCustomer,customer)
+                .build();
+		
+				        Amount amount = new Amount(50L);
+				        doReturn(accountupdate).when(accountService).withdraw(amount, account);
+				        doReturn(account).when(accountService).findAccountByNumero("1000236");
+				
+				        HttpHeaders httpHeaders = new HttpHeaders();
+				        httpHeaders.setContentType(MediaType.APPLICATION_JSON);        
+				        HttpEntity<String> entity = new HttpEntity<String>(this.json(amount),httpHeaders);
+
+				        ResponseEntity<Account> response = restTemplate.exchange(BASE_URL + httpPort + "/kata-it"+ACOUNT_ENDPOINT+"/1000236/operations/WITHDRAWL/",HttpMethod.PUT, entity,
+				        		Account.class);
+
+				        assertThat(response).isNotNull();
+				        assertThat(response.getStatusCode()).as("Status code").isEqualTo(HttpStatus.OK);        
+				        assertThat(response.getBody().getSolde()).as("solde").isEqualTo(950L);
 	}
+	
+	@Test
+	public void that_withdraw_by_account_numero_should_Return_fail_with_404() throws Exception {
+
+        Customer customer = of(Customer::new)
+        		.with(Customer::setId,1L)
+				.build();
+         account = GenericBuilder.of(Account::new)
+        		 .with(Account::setId,1L)
+                .with(Account::setNumero,"1000236")
+                .with(Account::setSolde,50L)
+                .with(Account::setCustomer,customer)
+                .build();
+		
+				        Amount amount = new Amount(1000L);
+				        org.mockito.Mockito.doThrow(SoldeInsuffisantException.class).when(accountService).withdraw(amount, account);
+				        doReturn(account).when(accountService).findAccountByNumero("1000236");
+				
+				        HttpHeaders httpHeaders = new HttpHeaders();
+				        httpHeaders.setContentType(MediaType.APPLICATION_JSON);        
+				        HttpEntity<String> entity = new HttpEntity<String>(this.json(amount),httpHeaders);
+
+				        ResponseEntity<Account> response = restTemplate.exchange(BASE_URL + httpPort + "/kata-it" + ACOUNT_ENDPOINT + "/1000236/operations/WITHDRAWL/",
+										HttpMethod.PUT, entity, Account.class);
+
+										assertThat(response).isNotNull();
+								        assertThat(response.getStatusCode()).as("Status code").isEqualTo(HttpStatus.PRECONDITION_FAILED);
+	}
+
 
     protected String json(Object o) throws Exception {
         MockHttpOutputMessage mockHttpOutputMessage = new MockHttpOutputMessage(); 
