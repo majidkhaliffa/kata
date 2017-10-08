@@ -132,6 +132,11 @@ public class AccountControllerIT {
 				        assertThat(response.getStatusCode()).as("Status code").isEqualTo(HttpStatus.NOT_FOUND);          
     }
 
+    @Test
+	public void should_make_withdraw_by_account_numero() throws Exception {
+
+	}
+
     protected String json(Object o) throws Exception {
         MockHttpOutputMessage mockHttpOutputMessage = new MockHttpOutputMessage(); 
 			this.mappingJackson2HttpMessageConverter.write(
